@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <title>売上履歴</title>
+    </head>
+<body>
+    <h1>売上履歴</h1>
+
+    {% if sales_records %}
+        <table border = "1">
+            <tr>
+                <th>商品名</th>
+                <th>単価</th>
+                <th>数量</th>
+                <th>合計金額</th>
+            </tr>
+            {% for record in sales_records %}
+            <tr>
+                <td>{{ record.item_name }}</td>
+                <td>{{ record.price }}</td>
+                <td>{{ record.quantity }}</td>
+                <td>{{ record.total }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <p><strong>総売上：￥{{ total_sales }}</strong></p>
+    {% else %}
+        <p>売上履歴はありません</p>
+    {% endif %}
+
+    <a href="{{ url_for('index') }}">戻る</a>
+
+</body>
+</html>
