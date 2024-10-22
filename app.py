@@ -12,6 +12,12 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
+# 商品情報のモデル
+class Item(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), nullable=False)
+    price = db.Column(db.Integer, nullable=False)
+
 # 売り上げ情報のモデル
 class Sale(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -21,33 +27,46 @@ class Sale(db.Model):
     total = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+# 商品データをデータベースに初期化する関数を作成
+def init_items():
+    item_data = [
+        {"name": "白玉団子（黒蜜きなこ）", "price": 200},
+        {"name": "白玉団子（みたらし）", "price": 200},
+        {"name": "白玉団子（あんこ）", "price": 200},
+    ]
+    for item in item_data:
+        new_item = Item(name=item["name"], price=item["price"])
+        db.session.add(new_item)
+    db.session.commit()
+
 # データベースの初期化
 @app.before_request
 def create_tables():
     db.create_all()
+    # 商品がまだ存在しない場合には初期商品を追加
+    if Item.query.count() == 0:
+        init_items()
 
-# 商品データ
-items = [
-    {"id": 1, "name": "白玉団子（黒蜜きなこ）", "price": 200},
-    {"id": 2, "name": "白玉団子（みたらし）", "price": 200},
-    {"id": 3, "name": "白玉団子（あんこ）", "price": 200},
-]
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
     total = 0
     selected_item = None
     quantity = 1    # デフォルトの数量
+
+    # データベースから商品データを取得
+    items = Item.query.all()
+
     if request.method == 'POST':
         item_id = int(request.form['item'])
         quantity = int(request.form['quantity'])
-        selected_item = next(item for item in items if item['id'] == item_id)
-        total = selected_item['price'] * quantity
+        selected_item = Item.query.get(item_id)  # 選択された商品の詳細を取得
+        total = selected_item.price * quantity
 
         # 売り上げデータをデータベースに記録
         sale = Sale(
-            item_name=selected_item['name'],
-            price=selected_item['price'],
+            item_name=selected_item.name,
+            price=selected_item.price,
             quantity=quantity,
             total=total
         )
@@ -77,6 +96,24 @@ def delete(id):
         return redirect('/')
     except Exception as e:
         return f'削除に失敗しました:{str(e)}'
+
+@app.route('/edit_item/<int:id>', methods=['GET', 'POST'])
+def edit_item(id):
+    item_to_edit = Item.query.get_or_404(id)
+
+    if request.method == 'POST':
+        item_to_edit.name = request.form['item_name']
+        item_to_edit.price = int(request.form['price'])
+        db.session.commit()
+        return redirect(url_for('index'))
+
+    return render_template('edit_item.html', item=item_to_edit)
+
+@app.route('/items', methods=['GET'])
+def items():
+    # データベースからすべてのアイテムを取得
+    all_items = Item.query.all()
+    return render_template('items.html', items=all_items)
 
 if __name__ == '__main__':
     app.run(debug=True)
