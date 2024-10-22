@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime  # datetime モジュールをインポート
 import os
 
 app = Flask(__name__)
@@ -15,9 +16,10 @@ db = SQLAlchemy(app)
 class Sale(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     item_name = db.Column(db.String(80), nullable=False)
-    price = db.Column(db.Integer, nullable = False)
-    quantity = db.Column(db.Integer, nullable = False)
-    total = db.Column(db.Integer, nullable = False)
+    price = db.Column(db.Integer, nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    total = db.Column(db.Integer, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 # データベースの初期化
 @app.before_request
@@ -44,10 +46,10 @@ def index():
 
         # 売り上げデータをデータベースに記録
         sale = Sale(
-            item_name = selected_item['name'],
-            price = selected_item['price'],
-            quantity = quantity,
-            total = total
+            item_name=selected_item['name'],
+            price=selected_item['price'],
+            quantity=quantity,
+            total=total
         )
         db.session.add(sale)
         db.session.commit()
@@ -61,7 +63,7 @@ def sales():
     # データベースから全ての売上履歴を取得
     sales_records = Sale.query.all()
     total_sales = sum(record.total for record in sales_records)
-    return render_template('sales.html', sales_records = sales_records, total_sales = total_sales)
+    return render_template('sales.html', sales_records=sales_records, total_sales=total_sales)
 
 @app.route('/delete/<int:id>', methods=['POST'])
 def delete(id):
@@ -73,9 +75,8 @@ def delete(id):
         db.session.delete(sale_to_delete)
         db.session.commit()
         return redirect('/')
-    except:
+    except Exception as e:
         return f'削除に失敗しました:{str(e)}'
-
 
 if __name__ == '__main__':
     app.run(debug=True)
