@@ -1,10 +1,8 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>商品編集</title>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}商品を編集{% endblock %}
+
+{% block content %}
     <h1>商品を編集</h1>
 
     <form method="POST">
@@ -18,5 +16,4 @@
     </form>
 
     <a href="{{ url_for('index') }}">戻る</a>
-</body>
-</html>
+{% endblock %}

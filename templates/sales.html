@@ -1,10 +1,8 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>売上履歴</title>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}売上履歴{% endblock %}
+
+{% block content %}
     <h1>売上履歴</h1>
 
     {% if sales_records %}
@@ -38,5 +36,4 @@
     {% endif %}
 
     <a href="{{ url_for('index') }}">戻る</a>
-</body>
-</html>
+{% endblock %}

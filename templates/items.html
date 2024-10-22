@@ -1,10 +1,8 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>商品一覧</title>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}商品一覧{% endblock %}
+
+{% block content %}
     <h1>商品一覧</h1>
 
     {% if items %}
@@ -35,5 +33,4 @@
 
     <a href="{{ url_for('index') }}">メインページへ戻る</a>
     <a href="{{ url_for('add_item') }}">商品を追加</a>
-</body>
-</html>
+{% endblock %}
