@@ -115,5 +115,35 @@ def items():
     all_items = Item.query.all()
     return render_template('items.html', items=all_items)
 
+# 商品の追加ルート
+@app.route('/add_item', methods=['GET', 'POST'])
+def add_item():
+    if request.method == 'POST':
+        # フォームからデータを取得
+        item_name = request.form['name']
+        item_price = int(request.form['price'])
+
+        # データベースに追加
+        new_item = Item(name=item_name, price=item_price)
+        db.session.add(new_item)
+        db.session.commit()
+        
+        return redirect(url_for('items'))
+
+    return render_template('add_item.html')
+
+# 商品の削除ルート
+@app.route('/delete_item/<int:id>', methods=['POST'])
+def delete_item(id):
+    item_to_delete = Item.query.get_or_404(id)
+
+    try:
+        db.session.delete(item_to_delete)
+        db.session.commit()
+        return redirect(url_for('items'))
+    except Exception as e:
+        return f'削除に失敗しました: {str(e)}'
+
+
 if __name__ == '__main__':
     app.run(debug=True)
