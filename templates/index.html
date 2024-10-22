@@ -21,6 +21,8 @@
         <button type="submit">合計金額を計算</button>
     </form>
 
+    <a href="{{ url_for('sales') }}">現在の売り上げ</a>
+
     {% if total > 0 %}
         <h2>合計金額: ¥{{ total }}</h2>
     {% endif %}

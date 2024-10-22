@@ -63,5 +63,19 @@ def sales():
     total_sales = sum(record.total for record in sales_records)
     return render_template('sales.html', sales_records = sales_records, total_sales = total_sales)
 
+@app.route('/delete/<int:id>', methods=['POST'])
+def delete(id):
+    # IDで特定の売上データを検索
+    sale_to_delete = Sale.query.get_or_404(id)
+
+    try:
+        # データベースから削除
+        db.session.delete(sale_to_delete)
+        db.session.commit()
+        return redirect('/')
+    except:
+        return f'削除に失敗しました:{str(e)}'
+
+
 if __name__ == '__main__':
     app.run(debug=True)
