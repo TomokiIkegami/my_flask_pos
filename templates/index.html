@@ -5,16 +5,26 @@
 {% block content %}
     <h1>売り上げ計算</h1>
 
-    <form method="POST" action="{{ url_for('index') }}">
-        {% for item in items %}
-            <div class="form-group" style="margin-bottom: 8px;">
-                <label for="item_{{ item.id }}">{{ item.name }} (¥{{ item.price }})</label>
-                <input type="number" name="quantities[{{ item.id }}]" min="0" value="0" class="form-control" id="item_{{ item.id }}">
-            </div>
-        {% endfor %}
+    <form method="POST" action="{{ url_for('index') }}" class="mb-3" style="margin-bottom: 20px;"> <!-- 下にマージンを追加 -->
+        <div class="form-row">
+            {% for item in items %}
+                <div class="form-group col-md-3 mb-2"> <!-- 列の幅を指定し、行間にマージンを追加 -->
+                    <label for="item_{{ item.id }}">{{ item.name }} (¥{{ item.price }})</label>
+                    <div class="input-group">
+                        <input type="number" name="quantities[{{ item.id }}]" min="0" value="0" class="form-control text-center" id="item_{{ item.id }}" onchange="validateQuantity({{ item.id }})" style="max-width: 80px;"> <!-- 幅を指定 -->
+                        <div class="input-group-append" style="margin-left: 5px;"> <!-- 左にマージンを追加 -->
+                            <button type="button" class="btn btn-secondary" onclick="changeQuantity({{ item.id }}, -1)">ー</button>
+                            <button type="button" class="btn btn-secondary" onclick="changeQuantity({{ item.id }}, 1)">+</button>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
         <button type="submit" class="btn btn-primary" style="margin-top: 20px;">合計金額を計算</button>
     </form>
-    <br>
+
+    <br> <!-- フォームの間に隙間を作るための改行 -->
+    
     {% if total > 0 %}
         <h4>購入された商品</h4>
         <table class="table table-bordered">
@@ -42,4 +52,29 @@
     {% if total > 0 %}
         <h2 class="mt-4">合計金額: ¥{{ total }}</h2>
     {% endif %}
+    
+    <script>
+        function changeQuantity(itemId, delta) {
+            const input = document.getElementById(`item_${itemId}`);
+            let currentQuantity = parseInt(input.value) || 0;
+            currentQuantity += delta;
+
+            // 最小値は0に制限
+            if (currentQuantity < 0) {
+                currentQuantity = 0;
+            }
+
+            input.value = currentQuantity;
+        }
+
+        function validateQuantity(itemId) {
+            const input = document.getElementById(`item_${itemId}`);
+            let currentQuantity = parseInt(input.value) || 0;
+
+            // 負の値が入力された場合は0にリセット
+            if (currentQuantity < 0) {
+                input.value = 0;
+            }
+        }
+    </script>
 {% endblock %}
