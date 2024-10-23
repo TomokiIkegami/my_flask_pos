@@ -1,9 +1,13 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
+from flask_wtf import FlaskForm
+from wtforms import IntegerField, SubmitField, SelectField
+from wtforms.validators import DataRequired
 from datetime import datetime  # datetime モジュールをインポート
 import os
 
 app = Flask(__name__)
+app.config["SECRET_KEY"] = "secret"
 
 # SQLite データベースの設定
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -27,6 +31,9 @@ class Sale(db.Model):
     total = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class SalesForm(FlaskForm):
+    quantities = IntegerField('数量', default=1, validators=[DataRequired()])
+
 # 商品データをデータベースに初期化する関数を作成
 def init_items():
     item_data = [
@@ -47,42 +54,55 @@ def create_tables():
     if Item.query.count() == 0:
         init_items()
 
-
+@app.route('/', methods=['GET', 'POST'])
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    items = Item.query.all()  # データベースから全アイテムを取得
     total = 0
-    selected_item = None
-    quantity = 1    # デフォルトの数量
-
-    # データベースから商品データを取得
-    items = Item.query.all()
+    sales_records = []
 
     if request.method == 'POST':
-        item_id = int(request.form['item'])
-        quantity = int(request.form['quantity'])
-        selected_item = Item.query.get(item_id)  # 選択された商品の詳細を取得
-        total = selected_item.price * quantity
+        quantities = request.form.getlist('quantities[]')  # 数量を取得
+        for item in items:
+            quantity = request.form.get(f'quantities[{item.id}]', 0)
+            quantity = int(quantity)
+            if quantity > 0:
+                total += item.price * quantity
+                new_sale = Sale(item_name=item.name, price=item.price, quantity=quantity, total=item.price * quantity)
+                db.session.add(new_sale)
+                sales_records.append({'item_name': item.name, 'price': item.price, 'quantity': quantity, 'total': item.price * quantity})
 
-        # 売り上げデータをデータベースに記録
-        sale = Sale(
-            item_name=selected_item.name,
-            price=selected_item.price,
-            quantity=quantity,
-            total=total
-        )
-        db.session.add(sale)
+    db.session.commit()  # データベースに保存
+
+
+    return render_template('index.html', items=items, total=total, sales_records=sales_records)
+
+
+@app.route('/sales', methods=['GET', 'POST'])
+def sales():
+    items = Item.query.all()  # データベースから全商品を取得
+    total_sales = 0
+    sales_records = []
+
+    if request.method == 'POST':
+        quantities = request.form.getlist('quantities[]')  # 入力された数量を取得
+        for item in items:
+            quantity = request.form.get(f'quantities[{item.id}]', 0)
+            quantity = int(quantity)
+            if quantity > 0:
+                total = item.price * quantity
+                total_sales += total
+                # 売上情報をデータベースに保存
+                new_sale = Sale(item_name=item.name, price=item.price, quantity=quantity, total=total)
+                db.session.add(new_sale)
+                sales_records.append(new_sale)
+
         db.session.commit()
 
-        return redirect(url_for('sales'))
-
-    return render_template('index.html', items=items, total=total, quantity=quantity, selected_item=selected_item)
-
-@app.route('/sales')
-def sales():
-    # データベースから全ての売上履歴を取得
-    sales_records = Sale.query.all()
-    total_sales = sum(record.total for record in sales_records)
-    return render_template('sales.html', sales_records=sales_records, total_sales=total_sales)
+    # 売上履歴をデータベースから取得
+    sales_records = Sale.query.all()  # 売上履歴を取得
+    total_sales = sum(record.total for record in sales_records)  # 総売上金額を計算
+    return render_template('sales.html', items=items, total_sales=total_sales, sales_records=sales_records)
 
 @app.route('/delete/<int:id>', methods=['POST'])
 def delete(id):
@@ -93,7 +113,7 @@ def delete(id):
         # データベースから削除
         db.session.delete(sale_to_delete)
         db.session.commit()
-        return redirect('/')
+        return redirect('/sales')
     except Exception as e:
         return f'削除に失敗しました:{str(e)}'
 
