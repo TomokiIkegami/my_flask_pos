@@ -3,34 +3,40 @@
 {% block title %}商品一覧{% endblock %}
 
 {% block content %}
-    <h1>商品一覧</h1>
+    <h1 class="mt-4">商品一覧</h1>
 
     {% if items %}
-        <table border="1">
-            <tr>
-                <th>ID</th>
-                <th>商品名</th>
-                <th>価格</th>
-                <th>操作</th>
-            </tr>
-            {% for item in items %}
-            <tr>
-                <td>{{ item.id }}</td>
-                <td>{{ item.name }}</td>
-                <td>{{ item.price }}</td>
-                <td>
-                    <a href="{{ url_for('edit_item', id=item.id) }}">編集</a>
-                    <form action="{{ url_for('delete_item', id=item.id) }}" method="POST" style="display:inline;">
-                        <button type="submit" onclick="return confirm('本当に削除しますか？')">削除</button>
-                    </form>
-                </td>                
-            </tr>
-            {% endfor %}
+        <table class="table table-striped mt-3">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>商品名</th>
+                    <th>価格</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.id }}</td>
+                    <td>{{ item.name }}</td>
+                    <td>¥{{ item.price }}</td>
+                    <td>
+                        <a href="{{ url_for('edit_item', id=item.id) }}" class="btn btn-warning btn-sm">編集</a>
+                        <form action="{{ url_for('delete_item', id=item.id) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('本当に削除しますか？')">削除</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
     {% else %}
-        <p>商品が登録されていません</p>
+        <p class="alert alert-info">商品が登録されていません</p>
     {% endif %}
 
-    <a href="{{ url_for('index') }}">メインページへ戻る</a>
-    <a href="{{ url_for('add_item') }}">商品を追加</a>
+    <div class="mt-4">
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">メインページへ戻る</a>
+        <a href="{{ url_for('add_item') }}" class="btn btn-primary">商品を追加</a>
+    </div>
 {% endblock %}

@@ -8,19 +8,21 @@
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">　大学祭会計App.</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('sales') }}">現在の売り上げ</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('items') }}">商品一覧を表示</a>
-                </li>
-            </ul>
+        <div class="container-fluid">
+            <a class="navbar-brand ms-3" href="#">大学祭会計App.</a>  <!-- 左側に余白を追加 -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto me-3">  <!-- 右側に余白を追加 -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('sales') }}">現在の売り上げ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('items') }}">商品一覧を表示</a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </nav>
 

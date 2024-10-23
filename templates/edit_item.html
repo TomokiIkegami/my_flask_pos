@@ -3,17 +3,20 @@
 {% block title %}商品を編集{% endblock %}
 
 {% block content %}
-    <h1>商品を編集</h1>
+    <h1 class="mt-4">商品を編集</h1>
 
-    <form method="POST">
-        <label for="item_name">商品名:</label>
-        <input type="text" id="item_name" name="item_name" value="{{ item.name }}" required>
+    <form method="POST" class="mt-4">
+        <div class="mb-3">
+            <label for="item_name" class="form-label">商品名:</label>
+            <input type="text" id="item_name" name="item_name" class="form-control" value="{{ item.name }}" required>
+        </div>
         
-        <label for="price">価格:</label>
-        <input type="number" id="price" name="price" value="{{ item.price }}" required>
-        
-        <button type="submit">更新</button>
+        <div class="mb-3">
+            <label for="price" class="form-label">価格:</label>
+            <input type="number" id="price" name="price" class="form-control" value="{{ item.price }}" required min="0">
+        </div>
+
+        <button type="submit" class="btn btn-primary">更新</button>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">戻る</a>
     </form>
-
-    <a href="{{ url_for('index') }}">戻る</a>
 {% endblock %}

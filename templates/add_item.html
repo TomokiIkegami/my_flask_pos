@@ -3,17 +3,21 @@
 {% block title %}商品追加{% endblock %}
 
 {% block content %}
-    <h1>商品を追加</h1>
+    <h1 class="mt-4">商品を追加</h1>
 
     <form method="POST">
-        <label for="name">商品名:</label>
-        <input type="text" id="name" name="name" required>
-        
-        <label for="price">価格:</label>
-        <input type="number" id="price" name="price" required min="0">
+        <div class="form-group mt-3">
+            <label for="name">商品名:</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+        </div>
 
-        <button type="submit">追加</button>
+        <div class="form-group mt-3">
+            <label for="price">価格:</label>
+            <input type="number" class="form-control" id="price" name="price" required min="0">
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-3">追加</button>
     </form>
 
-    <a href="{{ url_for('items') }}">商品一覧に戻る</a>
+    <a href="{{ url_for('items') }}" class="btn btn-secondary mt-3">商品一覧に戻る</a>
 {% endblock %}
