@@ -1,13 +1,15 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask_wtf import FlaskForm
-from wtforms import IntegerField, SubmitField, SelectField
+from wtforms import StringField, PasswordField
 from wtforms.validators import DataRequired
-from datetime import datetime  # datetime モジュールをインポート
 import os
+from datetime import datetime
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "secret"
+app.config["SECRET_KEY"] = os.environ.get('SECRET_KEY', 'default-secret-key')
 
 # SQLite データベースの設定
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -15,6 +17,43 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'sa
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+
+# Flask-login の設定
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+# ユーザーモデル
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), nullable=False, unique=True)
+    password_hash = db.Column(db.String(120), nullable=False)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+def init_admin_user():
+    # 環境変数から取得
+    admin_username = os.environ.get('ADMIN_USERNAME')
+    admin_password = os.environ.get('ADMIN_PASSWORD')
+
+    if not admin_username or not admin_password:
+        raise ValueError("環境変数 'ADMIN_USERNAME' および 'ADMIN_PASSWORD' を設定してください。")
+
+    # すでに管理者ユーザーが存在しない場合にのみ追加
+    if not User.query.filter_by(username=admin_username).first():
+        admin = User(username=admin_username)
+        admin.set_password(admin_password)  # ハッシュ化してパスワードを設定
+        db.session.add(admin)
+        db.session.commit()
+        print(f"Admin user '{admin_username}' added.")
 
 # 商品情報のモデル
 class Item(db.Model):
@@ -31,10 +70,7 @@ class Sale(db.Model):
     total = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-class SalesForm(FlaskForm):
-    quantities = IntegerField('数量', default=1, validators=[DataRequired()])
-
-# 商品データをデータベースに初期化する関数を作成
+# 商品データをデータベースに初期化する関数
 def init_items():
     item_data = [
         {"name": "白玉団子（黒蜜きなこ）", "price": 200},
@@ -42,27 +78,69 @@ def init_items():
         {"name": "白玉団子（あんこ）", "price": 200},
     ]
     for item in item_data:
-        new_item = Item(name=item["name"], price=item["price"])
-        db.session.add(new_item)
+        if not Item.query.filter_by(name=item["name"]).first():
+            new_item = Item(name=item["name"], price=item["price"])
+            db.session.add(new_item)
     db.session.commit()
 
 # データベースの初期化
 @app.before_request
-def create_tables():
+def setup_database():
     db.create_all()
-    # 商品がまだ存在しない場合には初期商品を追加
-    if Item.query.count() == 0:
-        init_items()
+    init_items()
+    init_admin_user()
 
+# ログインフォーム
+class LoginForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+
+# ログインルート
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        # ユーザーが存在するか確認
+        user = User.query.filter_by(username=username).first()
+        
+        # デバッグメッセージを追加
+        if user:
+            print(f"User '{username}' found.")
+        else:
+            print(f"User '{username}' not found.")
+
+        # パスワードが一致するか確認
+        if user and user.check_password(password):
+            print("Password matched!")  # パスワードが一致した場合のデバッグメッセージ
+            login_user(user)
+            return redirect(url_for('index'))
+        else:
+            print("Password did not match or user not found.")  # 一致しなかった場合のデバッグメッセージ
+            flash('Invalid username or password', 'danger')  # ログイン失敗メッセージ
+
+    return render_template('login.html')
+
+
+# ログアウトルート
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('ログアウトしました', 'info')
+    return redirect(url_for('login'))
+
+# 必要なルートに @login_required を追加
 @app.route('/', methods=['GET', 'POST'])
-@app.route('/', methods=['GET', 'POST'])
+@login_required
 def index():
-    items = Item.query.all()  # データベースから全アイテムを取得
+    items = Item.query.all()
     total = 0
     sales_records = []
 
     if request.method == 'POST':
-        quantities = request.form.getlist('quantities[]')  # 数量を取得
+        quantities = request.form.getlist('quantities[]')
         for item in items:
             quantity = request.form.get(f'quantities[{item.id}]', 0)
             quantity = int(quantity)
@@ -72,50 +150,45 @@ def index():
                 db.session.add(new_sale)
                 sales_records.append({'item_name': item.name, 'price': item.price, 'quantity': quantity, 'total': item.price * quantity})
 
-    db.session.commit()  # データベースに保存
-
+    db.session.commit()
 
     return render_template('index.html', items=items, total=total, sales_records=sales_records)
 
-
+# 他の必要なビュー関数にも @login_required を追加
 @app.route('/sales', methods=['GET', 'POST'])
+@login_required
 def sales():
-    items = Item.query.all()  # データベースから全商品を取得
+    items = Item.query.all()
     total_sales = 0
     sales_records = []
 
     if request.method == 'POST':
-        quantities = request.form.getlist('quantities[]')  # 入力された数量を取得
+        quantities = request.form.getlist('quantities[]')
         for item in items:
             quantity = request.form.get(f'quantities[{item.id}]', 0)
             quantity = int(quantity)
             if quantity > 0:
                 total = item.price * quantity
                 total_sales += total
-                # 売上情報をデータベースに保存
                 new_sale = Sale(item_name=item.name, price=item.price, quantity=quantity, total=total)
                 db.session.add(new_sale)
                 sales_records.append(new_sale)
 
         db.session.commit()
 
-    # 売上履歴をデータベースから取得
-    sales_records = Sale.query.all()  # 売上履歴を取得
-    total_sales = sum(record.total for record in sales_records)  # 総売上金額を計算
+    sales_records = Sale.query.all()
+    total_sales = sum(record.total for record in sales_records)
     return render_template('sales.html', items=items, total_sales=total_sales, sales_records=sales_records)
 
 @app.route('/delete/<int:id>', methods=['POST'])
 def delete(id):
-    # IDで特定の売上データを検索
     sale_to_delete = Sale.query.get_or_404(id)
-
     try:
-        # データベースから削除
         db.session.delete(sale_to_delete)
         db.session.commit()
         return redirect('/sales')
     except Exception as e:
-        return f'削除に失敗しました:{str(e)}'
+        return f'削除に失敗しました: {str(e)}'
 
 @app.route('/edit_item/<int:id>', methods=['GET', 'POST'])
 def edit_item(id):
@@ -131,19 +204,15 @@ def edit_item(id):
 
 @app.route('/items', methods=['GET'])
 def items():
-    # データベースからすべてのアイテムを取得
     all_items = Item.query.all()
     return render_template('items.html', items=all_items)
 
-# 商品の追加ルート
 @app.route('/add_item', methods=['GET', 'POST'])
 def add_item():
     if request.method == 'POST':
-        # フォームからデータを取得
         item_name = request.form['name']
         item_price = int(request.form['price'])
 
-        # データベースに追加
         new_item = Item(name=item_name, price=item_price)
         db.session.add(new_item)
         db.session.commit()
@@ -152,18 +221,15 @@ def add_item():
 
     return render_template('add_item.html')
 
-# 商品の削除ルート
 @app.route('/delete_item/<int:id>', methods=['POST'])
 def delete_item(id):
     item_to_delete = Item.query.get_or_404(id)
-
     try:
         db.session.delete(item_to_delete)
         db.session.commit()
         return redirect(url_for('items'))
     except Exception as e:
         return f'削除に失敗しました: {str(e)}'
-
 
 if __name__ == '__main__':
     app.run(debug=True)
