@@ -181,6 +181,7 @@ def sales():
     return render_template('sales.html', items=items, total_sales=total_sales, sales_records=sales_records)
 
 @app.route('/delete/<int:id>', methods=['POST'])
+@login_required
 def delete(id):
     sale_to_delete = Sale.query.get_or_404(id)
     try:
@@ -191,6 +192,7 @@ def delete(id):
         return f'削除に失敗しました: {str(e)}'
 
 @app.route('/edit_item/<int:id>', methods=['GET', 'POST'])
+@login_required
 def edit_item(id):
     item_to_edit = Item.query.get_or_404(id)
 
@@ -203,11 +205,13 @@ def edit_item(id):
     return render_template('edit_item.html', item=item_to_edit)
 
 @app.route('/items', methods=['GET'])
+@login_required
 def items():
     all_items = Item.query.all()
     return render_template('items.html', items=all_items)
 
 @app.route('/add_item', methods=['GET', 'POST'])
+@login_required
 def add_item():
     if request.method == 'POST':
         item_name = request.form['name']
@@ -222,6 +226,7 @@ def add_item():
     return render_template('add_item.html')
 
 @app.route('/delete_item/<int:id>', methods=['POST'])
+@login_required
 def delete_item(id):
     item_to_delete = Item.query.get_or_404(id)
     try:
