@@ -6,7 +6,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField
 from wtforms.validators import DataRequired
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get('SECRET_KEY', 'default-secret-key')
@@ -69,6 +69,9 @@ class Sale(db.Model):
     quantity = db.Column(db.Integer, nullable=False)
     total = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<Sale {self.item_name}, {self.total}>'
 
 # 商品データをデータベースに初期化する関数
 def init_items():
@@ -235,6 +238,29 @@ def delete_item(id):
         return redirect(url_for('items'))
     except Exception as e:
         return f'削除に失敗しました: {str(e)}'
+
+@app.route('/dashboard')
+def dashboard():
+    # 合計売上個数
+    total_quantity = db.session.query(db.func.sum(Sale.quantity)).scalar() or 0
+
+    # 合計売上金額
+    total_sales = db.session.query(db.func.sum(Sale.total)).scalar() or 0
+
+    # 1時間あたりの売上金額
+    one_hour_ago = datetime.utcnow() - timedelta(hours=1)
+    sales_last_hour = db.session.query(db.func.sum(Sale.total)).filter(Sale.created_at >= one_hour_ago).scalar() or 0
+
+    # すべての売上データを取得
+    sales = Sale.query.all()
+
+    return render_template(
+        'dashboard.html',
+        total_quantity=total_quantity,
+        total_sales=total_sales,
+        sales_last_hour=sales_last_hour,
+        sales=sales
+    )
 
 if __name__ == '__main__':
     app.run(debug=True)

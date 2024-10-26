@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}商品を編集{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Sales Dashboard</h1>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-header">Total Sales Quantity</div>
+                <div class="card-body">
+                    <h4 class="card-title">{{ total_quantity }} Units</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-header">Total Sales Amount</div>
+                <div class="card-body">
+                    <h4 class="card-title">¥{{ total_sales }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-info mb-3">
+                <div class="card-header">Sales in the Last Hour</div>
+                <div class="card-body">
+                    <h4 class="card-title">¥{{ sales_last_hour }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="mt-5">Sales Records</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Item Name</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Total</th>
+                <th>Date of Sale</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sale in sales %}
+                <tr>
+                    <td>{{ sale.item_name }}</td>
+                    <td>{{ sale.quantity }}</td>
+                    <td>¥{{ sale.price }}</td>
+                    <td>¥{{ sale.total }}</td>
+                    <td>{{ sale.created_at }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
