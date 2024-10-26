@@ -175,7 +175,7 @@ var cumulativeSalesChart = new Chart(cumulativeCtx, {
         data: {
             labels: {{ product_names|tojson|default('[]') }},
             datasets: [{
-                label: '売れた商品の割合',
+                label: '数量',
                 data: {{ product_quantities|tojson|default('[]') }},
                 backgroundColor: [
                     'rgba(255, 99, 132, 0.2)',
