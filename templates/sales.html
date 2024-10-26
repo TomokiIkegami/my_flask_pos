@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}模擬店会計App.{% endblock %}
+{% block title %}模擬店会計App{% endblock %}
 
 {% block content %}
     <h1 class="mt-4">売上履歴</h1>
     <a href="{{ url_for('index') }}" class="btn btn-secondary my-2">メインページに戻る</a>
+    <a href="{{ url_for('download_csv') }}" class="btn btn-primary my-2">CSVでダウンロード</a> <!-- 追加されたボタン -->
 
     {% if sales_records %}
         <div class="table-responsive">
@@ -26,7 +27,7 @@
                         <td>¥{{ record.price }}</td>
                         <td>{{ record.quantity }}</td>
                         <td>¥{{ record.total }}</td>
-                        <td>{{ record.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td> <!-- 日時をフォーマットして表示 -->
+                        <td>{{ record.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                         <td>
                             <form action="{{ url_for('delete', id=record.id) }}" method="POST" class="d-inline">
                                 <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('本当に削除しますか？')">削除</button>

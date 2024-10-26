@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -6,6 +6,8 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField
 from wtforms.validators import DataRequired
 import os
+import csv
+import io
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
@@ -294,6 +296,37 @@ def dashboard():
         product_quantities=product_quantities
     )
 
+@app.route('/download_csv')
+def download_csv():
+    # 売上データの取得（sales_records など）
+    sales_records = Sale.query.all() # 既存の関数または処理で売上データを取得
+
+    # CSVをメモリ上で生成
+    output = io.StringIO()
+    writer = csv.writer(output)
+    # CSVのヘッダー行
+    writer.writerow(['商品名', '単価', '数量', '合計金額', '日時'])
+    
+    # CSVのデータ行
+    for record in sales_records:
+        writer.writerow([
+            record.item_name,
+            record.price,
+            record.quantity,
+            record.total,
+            record.created_at.strftime('%Y-%m-%d %H:%M:%S')
+        ])
+    
+    # ポインタを先頭に戻す
+    output.seek(0)
+    
+    # CSVをダウンロード用にレスポンス
+    return send_file(
+        io.BytesIO(output.getvalue().encode('utf-8-sig')),
+        mimetype='text/csv',
+        as_attachment=True,
+        download_name='sales_records.csv'
+    )
 
 if __name__ == '__main__':
     app.run(debug=True)
