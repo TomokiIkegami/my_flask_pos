@@ -128,7 +128,7 @@ def login():
 
 # ログアウトルート
 @app.route('/logout')
-@login_required
+# @login_required
 def logout():
     logout_user()
     flash('ログアウトしました', 'info')
@@ -136,7 +136,7 @@ def logout():
 
 # 必要なルートに @login_required を追加
 @app.route('/', methods=['GET', 'POST'])
-@login_required
+# @login_required
 def index():
     items = Item.query.all()
     total = 0
@@ -159,7 +159,7 @@ def index():
 
 # 他の必要なビュー関数にも @login_required を追加
 @app.route('/sales', methods=['GET', 'POST'])
-@login_required
+# @login_required
 def sales():
     items = Item.query.all()
     total_sales = 0
@@ -184,7 +184,7 @@ def sales():
     return render_template('sales.html', items=items, total_sales=total_sales, sales_records=sales_records)
 
 @app.route('/delete/<int:id>', methods=['POST'])
-@login_required
+# @login_required
 def delete(id):
     sale_to_delete = Sale.query.get_or_404(id)
     try:
@@ -195,7 +195,7 @@ def delete(id):
         return f'削除に失敗しました: {str(e)}'
 
 @app.route('/edit_item/<int:id>', methods=['GET', 'POST'])
-@login_required
+# @login_required
 def edit_item(id):
     item_to_edit = Item.query.get_or_404(id)
 
@@ -208,13 +208,13 @@ def edit_item(id):
     return render_template('edit_item.html', item=item_to_edit)
 
 @app.route('/items', methods=['GET'])
-@login_required
+# @login_required
 def items():
     all_items = Item.query.all()
     return render_template('items.html', items=all_items)
 
 @app.route('/add_item', methods=['GET', 'POST'])
-@login_required
+# @login_required
 def add_item():
     if request.method == 'POST':
         item_name = request.form['name']
@@ -229,7 +229,7 @@ def add_item():
     return render_template('add_item.html')
 
 @app.route('/delete_item/<int:id>', methods=['POST'])
-@login_required
+# @login_required
 def delete_item(id):
     item_to_delete = Item.query.get_or_404(id)
     try:
@@ -256,7 +256,7 @@ def dashboard():
 
     for sale in sales:
         # JST に変換して時間ごとの売上
-        hour = f"{int(sale.created_at.strftime('%H'))}"
+        hour = (sale.created_at).strftime('%m/%d %H:00')
         if hour not in hourly_sales:
             hourly_sales[hour] = 0
         hourly_sales[hour] += sale.quantity

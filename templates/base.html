@@ -16,10 +16,13 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto me-3">  <!-- 右側に余白を追加 -->
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('sales') }}">現在の売り上げ</a>
+                        <a class="nav-link" href="{{ url_for('index') }}">売上計算</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('items') }}">商品一覧を表示</a>
+                        <a class="nav-link" href="{{ url_for('sales') }}">売上履歴</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('items') }}">商品一覧</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('dashboard') }}">売上ダッシュボード</a>

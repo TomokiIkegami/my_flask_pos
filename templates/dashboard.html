@@ -1,22 +1,22 @@
 {% extends "base.html" %}
 
-{% block title %}Sales Dashboard{% endblock %}
+{% block title %}売上ダッシュボード{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
-    <h1 class="mb-4">Sales Dashboard</h1>
+    <h1 class="mb-4">売上ダッシュボード</h1>
     <div class="row">
         <div class="col-md-4">
             <div class="card text-white bg-primary mb-3">
-                <div class="card-header">Total Sales Quantity</div>
+                <div class="card-header">累計</div>
                 <div class="card-body">
-                    <h4 class="card-title">{{ total_quantity }} Units</h4>
+                    <h4 class="card-title">{{ total_quantity }} 個</h4>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card text-white bg-success mb-3">
-                <div class="card-header">Total Sales Amount</div>
+                <div class="card-header">合計金額</div>
                 <div class="card-body">
                     <h4 class="card-title">¥{{ total_sales }}</h4>
                 </div>
@@ -35,20 +35,20 @@
 
     <div class="row">
         <div class="col-lg-6">
-            <h2 class="mt-5">Cumulative Sales Quantity</h2>
             <div class="chart-container">
+                <h2 class="mt-5">売上数量の推移</h2>
                 <canvas id="cumulativeSalesChart"></canvas>    
             </div>
         </div>
         <div class="col-lg-6">
-            <h2 class="mt-5">Hourly Sales Quantity</h2>
+            <h2 class="mt-5">時間帯ごとの売上</h2>
             <div class="chart-container">
                 <canvas id="hourlySalesChart"></canvas>
             </div>
         </div>
     </div>
     
-    <h2 class="mt-5">Product Sales Proportion</h2>
+    <h2 class="mt-5">商品の人気</h2>
     <div class="row">
         <div class="col-lg-6">
             <div class="chart-container">
@@ -96,7 +96,7 @@ var hourlySalesChart = new Chart(hourlyCtx, {
     data: {
         labels: {{ sorted_hours|tojson }},
         datasets: [{
-            label: 'Hourly Sales Quantity',
+            label: '数量',
             data: {{ quantities|tojson }},
             backgroundColor: 'rgba(75, 192, 192, 0.2)',
             borderColor: 'rgba(75, 192, 192, 1)',
@@ -115,14 +115,14 @@ var hourlySalesChart = new Chart(hourlyCtx, {
                 display: true,
                 title: {
                     display: true,
-                    text: 'Time'
+                    text: '時間'
                 }
             },
             y: {
                 display: true,
                 title: {
                     display: true,
-                    text: 'Quantity'
+                    text: '数量'
                 }
             }
         }
@@ -136,7 +136,7 @@ var cumulativeSalesChart = new Chart(cumulativeCtx, {
     data: {
         labels: {{ sorted_hours|tojson }},
         datasets: [{
-            label: 'Cumulative Sales Quantity',
+            label: '数量',
             data: {{ cumulative_quantities|tojson }},
             borderColor: 'rgba(153, 102, 255, 1)',
             borderWidth: 2,
@@ -155,14 +155,14 @@ var cumulativeSalesChart = new Chart(cumulativeCtx, {
                 display: true,
                 title: {
                     display: true,
-                    text: 'Time'
+                    text: '時間'
                 }
             },
             y: {
                 display: true,
                 title: {
                     display: true,
-                    text: 'Quantity'
+                    text: '数量'
                 }
             }
         }
@@ -176,7 +176,7 @@ var cumulativeSalesChart = new Chart(cumulativeCtx, {
         data: {
             labels: {{ product_names|tojson|default('[]') }},
             datasets: [{
-                label: 'Product Sales Distribution',
+                label: '売れた商品の割合',
                 data: {{ product_quantities|tojson|default('[]') }},
                 backgroundColor: [
                     'rgba(255, 99, 132, 0.2)',
