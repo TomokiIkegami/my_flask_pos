@@ -241,25 +241,42 @@ def delete_item(id):
 
 @app.route('/dashboard')
 def dashboard():
-    # 合計売上個数
+    # 合計売上個数、売上額、直近1時間の売上額
     total_quantity = db.session.query(db.func.sum(Sale.quantity)).scalar() or 0
-
-    # 合計売上金額
     total_sales = db.session.query(db.func.sum(Sale.total)).scalar() or 0
 
-    # 1時間あたりの売上金額
     one_hour_ago = datetime.utcnow() - timedelta(hours=1)
     sales_last_hour = db.session.query(db.func.sum(Sale.total)).filter(Sale.created_at >= one_hour_ago).scalar() or 0
 
-    # すべての売上データを取得
+    # 時間ごとの売上個数の取得
     sales = Sale.query.all()
+    hourly_sales = {}
+    for sale in sales:
+        hour = sale.created_at.strftime('%Y-%m-%d %H:00')
+        if hour not in hourly_sales:
+            hourly_sales[hour] = 0
+        hourly_sales[hour] += sale.quantity
+
+    # 時間順に並べ替え
+    sorted_hours = sorted(hourly_sales.keys())
+    quantities = [hourly_sales[hour] for hour in sorted_hours]
+
+    # 累計売上個数の計算
+    cumulative_quantities = []
+    cumulative_sum = 0
+    for q in quantities:
+        cumulative_sum += q
+        cumulative_quantities.append(cumulative_sum)
 
     return render_template(
         'dashboard.html',
         total_quantity=total_quantity,
         total_sales=total_sales,
         sales_last_hour=sales_last_hour,
-        sales=sales
+        sales=sales,
+        sorted_hours=sorted_hours,
+        quantities=quantities,
+        cumulative_quantities=cumulative_quantities
     )
 
 if __name__ == '__main__':

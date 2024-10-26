@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}商品を編集{% endblock %}
+{% block title %}Sales Dashboard{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
@@ -32,6 +32,9 @@
         </div>
     </div>
 
+    <h2 class="mt-5">Sales Trends</h2>
+    <canvas id="salesChart"></canvas>
+
     <h2 class="mt-5">Sales Records</h2>
     <table class="table table-striped">
         <thead>
@@ -56,4 +59,55 @@
         </tbody>
     </table>
 </div>
+
+<!-- Chart.js を読み込み -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Chart.js を使って売上データを表示
+    var ctx = document.getElementById('salesChart').getContext('2d');
+    var salesChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ sorted_hours|tojson }},
+            datasets: [{
+                label: 'Hourly Sales Quantity',
+                data: {{ quantities|tojson }},
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 2,
+                fill: false
+            },
+            {
+                label: 'Cumulative Sales Quantity',
+                data: {{ cumulative_quantities|tojson }},
+                borderColor: 'rgba(153, 102, 255, 1)',
+                borderWidth: 2,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Time'
+                    }
+                },
+                y: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Quantity'
+                    }
+                }
+            }
+        }
+    });
+</script>
 {% endblock %}
