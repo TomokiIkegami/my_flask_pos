@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}売上履歴{% endblock %}
+{% block title %}模擬店会計App.{% endblock %}
 
 {% block content %}
     <h1 class="mt-4">売上履歴</h1>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary my-2">メインページに戻る</a>
 
     {% if sales_records %}
         <div class="table-responsive">
@@ -40,6 +41,4 @@
     {% else %}
         <p class="mt-4">売上履歴はありません</p>
     {% endif %}
-
-    <a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">メインページに戻る</a>
 {% endblock %}

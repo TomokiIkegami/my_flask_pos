@@ -1,21 +1,21 @@
 {% extends "base.html" %}
 
-{% block title %}売上ダッシュボード{% endblock %}
+{% block title %}模擬店会計App.{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h1 class="mb-4">売上ダッシュボード</h1>
+    <h1 class="mt-4">売上ダッシュボード</h1>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary my-2">メインページに戻る</a>
     <div class="row">
-        <div class="col-md-4">
-            <div class="card text-white bg-primary mb-3">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mt-2">
                 <div class="card-header">累計</div>
                 <div class="card-body">
                     <h4 class="card-title">{{ total_quantity }} 個</h4>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-success mb-3">
+        <div class="col-md-3">
+            <div class="card text-white bg-success mt-2">
                 <div class="card-header">合計金額</div>
                 <div class="card-body">
                     <h4 class="card-title">¥{{ total_sales }}</h4>
@@ -36,19 +36,19 @@
     <div class="row">
         <div class="col-lg-6">
             <div class="chart-container">
-                <h2 class="mt-5">売上数量の推移</h2>
+                <h2 class="mt-4">売上数量の推移</h2>
                 <canvas id="cumulativeSalesChart"></canvas>    
             </div>
         </div>
         <div class="col-lg-6">
-            <h2 class="mt-5">時間帯ごとの売上</h2>
+            <h2 class="mt-4">時間帯ごとの売上</h2>
             <div class="chart-container">
                 <canvas id="hourlySalesChart"></canvas>
             </div>
         </div>
     </div>
     
-    <h2 class="mt-5">商品の人気</h2>
+    <h2 class="mt-2">商品の人気</h2>
     <div class="row">
         <div class="col-lg-6">
             <div class="chart-container">
@@ -82,7 +82,6 @@
             {% endfor %}
         </tbody>
     </table> -->
-</div>
 
 <!-- Chart.js を読み込み -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
