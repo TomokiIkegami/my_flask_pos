@@ -22,6 +22,7 @@
                 </div>
             </div>
         </div>
+        <!-- Uncomment if needed
         <div class="col-md-4">
             <div class="card text-white bg-info mb-3">
                 <div class="card-header">Sales in the Last Hour</div>
@@ -29,12 +30,35 @@
                     <h4 class="card-title">¥{{ sales_last_hour }}</h4>
                 </div>
             </div>
-        </div>
+        </div> -->
     </div>
 
-    <h2 class="mt-5">Sales Trends</h2>
-    <canvas id="salesChart"></canvas>
+    <div class="row">
+        <div class="col-lg-6">
+            <h2 class="mt-5">Cumulative Sales Quantity</h2>
+            <div class="chart-container">
+                <canvas id="cumulativeSalesChart"></canvas>    
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <h2 class="mt-5">Hourly Sales Quantity</h2>
+            <div class="chart-container">
+                <canvas id="hourlySalesChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <h2 class="mt-5">Product Sales Proportion</h2>
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="chart-container">
+                <canvas id="productSalesChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
 
+    <!-- Uncomment if needed
     <h2 class="mt-5">Sales Records</h2>
     <table class="table table-striped">
         <thead>
@@ -57,31 +81,120 @@
                 </tr>
             {% endfor %}
         </tbody>
-    </table>
+    </table> -->
 </div>
 
 <!-- Chart.js を読み込み -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
 <script>
-    // Chart.js を使って売上データを表示
-    var ctx = document.getElementById('salesChart').getContext('2d');
-    var salesChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: {{ sorted_hours|tojson }},
-            datasets: [{
-                label: 'Hourly Sales Quantity',
-                data: {{ quantities|tojson }},
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 2,
-                fill: false
+// 単位時間ごとの売上数量を表示する棒グラフ
+var hourlyCtx = document.getElementById('hourlySalesChart').getContext('2d');
+var hourlySalesChart = new Chart(hourlyCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ sorted_hours|tojson }},
+        datasets: [{
+            label: 'Hourly Sales Quantity',
+            data: {{ quantities|tojson }},
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'top',
+            }
+        },
+        scales: {
+            x: {
+                display: true,
+                title: {
+                    display: true,
+                    text: 'Time'
+                }
             },
-            {
-                label: 'Cumulative Sales Quantity',
-                data: {{ cumulative_quantities|tojson }},
-                borderColor: 'rgba(153, 102, 255, 1)',
-                borderWidth: 2,
-                fill: false
+            y: {
+                display: true,
+                title: {
+                    display: true,
+                    text: 'Quantity'
+                }
+            }
+        }
+    }
+});
+
+// 累計売上数量を表示する折れ線グラフ
+var cumulativeCtx = document.getElementById('cumulativeSalesChart').getContext('2d');
+var cumulativeSalesChart = new Chart(cumulativeCtx, {
+    type: 'line',
+    data: {
+        labels: {{ sorted_hours|tojson }},
+        datasets: [{
+            label: 'Cumulative Sales Quantity',
+            data: {{ cumulative_quantities|tojson }},
+            borderColor: 'rgba(153, 102, 255, 1)',
+            borderWidth: 2,
+            fill: false
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'top',
+            }
+        },
+        scales: {
+            x: {
+                display: true,
+                title: {
+                    display: true,
+                    text: 'Time'
+                }
+            },
+            y: {
+                display: true,
+                title: {
+                    display: true,
+                    text: 'Quantity'
+                }
+            }
+        }
+    }
+});
+
+    // 円グラフを描画 (売れた商品の割合)
+    var productCtx = document.getElementById('productSalesChart').getContext('2d');
+    var productSalesChart = new Chart(productCtx, {
+        type: 'pie',
+        data: {
+            labels: {{ product_names|tojson|default('[]') }},
+            datasets: [{
+                label: 'Product Sales Distribution',
+                data: {{ product_quantities|tojson|default('[]') }},
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(255, 159, 64, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 1
             }]
         },
         options: {
@@ -89,25 +202,21 @@
             plugins: {
                 legend: {
                     position: 'top',
-                }
-            },
-            scales: {
-                x: {
-                    display: true,
-                    title: {
-                        display: true,
-                        text: 'Time'
-                    }
                 },
-                y: {
-                    display: true,
-                    title: {
-                        display: true,
-                        text: 'Quantity'
+                datalabels: {
+                    formatter: (value, ctx) => {
+                        let sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                        let percentage = (value * 100 / sum).toFixed(1) + "%";
+                        return percentage;
+                    },
+                    color: '#777',
+                    font: {
+                        weight: 'bold'
                     }
                 }
             }
-        }
+        },
+        plugins: [ChartDataLabels] // Chart.jsのプラグインとしてdatalabelsを有効化
     });
 </script>
 {% endblock %}

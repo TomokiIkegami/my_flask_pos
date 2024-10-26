@@ -68,7 +68,7 @@ class Sale(db.Model):
     price = db.Column(db.Integer, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     total = db.Column(db.Integer, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.utcnow() + timedelta(hours=9))  # JST に変更
 
     def __repr__(self):
         return f'<Sale {self.item_name}, {self.total}>'
@@ -245,21 +245,30 @@ def dashboard():
     total_quantity = db.session.query(db.func.sum(Sale.quantity)).scalar() or 0
     total_sales = db.session.query(db.func.sum(Sale.total)).scalar() or 0
 
-    one_hour_ago = datetime.utcnow() - timedelta(hours=1)
+    # JST に直近1時間の時間を取得
+    one_hour_ago = datetime.utcnow() + timedelta(hours=9) - timedelta(hours=1)
     sales_last_hour = db.session.query(db.func.sum(Sale.total)).filter(Sale.created_at >= one_hour_ago).scalar() or 0
 
     # 時間ごとの売上個数の取得
     sales = Sale.query.all()
     hourly_sales = {}
+    product_sales = {}
+
     for sale in sales:
-        hour = sale.created_at.strftime('%Y-%m-%d %H:00')
+        # JST に変換して時間ごとの売上
+        hour = f"{int(sale.created_at.strftime('%H'))}"
         if hour not in hourly_sales:
             hourly_sales[hour] = 0
         hourly_sales[hour] += sale.quantity
 
+        # 商品ごとの売上（円グラフ用）
+        if sale.item_name not in product_sales:
+            product_sales[sale.item_name] = 0
+        product_sales[sale.item_name] += sale.quantity
+
     # 時間順に並べ替え
     sorted_hours = sorted(hourly_sales.keys())
-    quantities = [hourly_sales[hour] for hour in sorted_hours]
+    quantities = [hourly_sales.get(hour, 0) for hour in sorted_hours]
 
     # 累計売上個数の計算
     cumulative_quantities = []
@@ -267,6 +276,10 @@ def dashboard():
     for q in quantities:
         cumulative_sum += q
         cumulative_quantities.append(cumulative_sum)
+
+    # 商品名と売上数量（円グラフ用）
+    product_names = list(product_sales.keys())
+    product_quantities = list(product_sales.values())
 
     return render_template(
         'dashboard.html',
@@ -276,8 +289,11 @@ def dashboard():
         sales=sales,
         sorted_hours=sorted_hours,
         quantities=quantities,
-        cumulative_quantities=cumulative_quantities
+        cumulative_quantities=cumulative_quantities,
+        product_names=product_names,
+        product_quantities=product_quantities
     )
+
 
 if __name__ == '__main__':
     app.run(debug=True)
