@@ -130,15 +130,15 @@ def login():
 
 # ログアウトルート
 @app.route('/logout')
-# @login_required
+@login_required
 def logout():
     logout_user()
     flash('ログアウトしました', 'info')
     return redirect(url_for('login'))
 
-# 必要なルートに @login_required を追加
+# メインページのルート
 @app.route('/', methods=['GET', 'POST'])
-# @login_required
+@login_required
 def index():
     items = Item.query.all()
     total = 0
@@ -159,9 +159,9 @@ def index():
 
     return render_template('index.html', items=items, total=total, sales_records=sales_records)
 
-# 他の必要なビュー関数にも @login_required を追加
+# 売上履歴のルート
 @app.route('/sales', methods=['GET', 'POST'])
-# @login_required
+@login_required
 def sales():
     items = Item.query.all()
     total_sales = 0
@@ -185,8 +185,9 @@ def sales():
     total_sales = sum(record.total for record in sales_records)
     return render_template('sales.html', items=items, total_sales=total_sales, sales_records=sales_records)
 
+# 売上履歴の削除ルート
 @app.route('/delete/<int:id>', methods=['POST'])
-# @login_required
+@login_required
 def delete(id):
     sale_to_delete = Sale.query.get_or_404(id)
     try:
@@ -196,8 +197,9 @@ def delete(id):
     except Exception as e:
         return f'削除に失敗しました: {str(e)}'
 
+# 商品情報編集のルート
 @app.route('/edit_item/<int:id>', methods=['GET', 'POST'])
-# @login_required
+@login_required
 def edit_item(id):
     item_to_edit = Item.query.get_or_404(id)
 
@@ -209,14 +211,16 @@ def edit_item(id):
 
     return render_template('edit_item.html', item=item_to_edit)
 
+# 商品一覧のルート
 @app.route('/items', methods=['GET'])
-# @login_required
+@login_required
 def items():
     all_items = Item.query.all()
     return render_template('items.html', items=all_items)
 
+# 商品追加のルート
 @app.route('/add_item', methods=['GET', 'POST'])
-# @login_required
+@login_required
 def add_item():
     if request.method == 'POST':
         item_name = request.form['name']
@@ -230,8 +234,9 @@ def add_item():
 
     return render_template('add_item.html')
 
+# 商品削除のルート
 @app.route('/delete_item/<int:id>', methods=['POST'])
-# @login_required
+@login_required
 def delete_item(id):
     item_to_delete = Item.query.get_or_404(id)
     try:
@@ -241,6 +246,7 @@ def delete_item(id):
     except Exception as e:
         return f'削除に失敗しました: {str(e)}'
 
+# 売上ダッシュボードの√
 @app.route('/dashboard')
 def dashboard():
     # 合計売上個数、売上額、直近1時間の売上額
@@ -296,6 +302,7 @@ def dashboard():
         product_quantities=product_quantities
     )
 
+# 売上データのCSVダウンロード用のルート
 @app.route('/download_csv')
 def download_csv():
     # 売上データの取得（sales_records など）
@@ -329,4 +336,4 @@ def download_csv():
     )
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
