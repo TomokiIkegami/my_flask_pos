@@ -130,7 +130,7 @@ def login():
 
 # ログアウトルート
 @app.route('/logout')
-@login_required
+# @login_required
 def logout():
     logout_user()
     flash('ログアウトしました', 'info')
@@ -138,7 +138,7 @@ def logout():
 
 # メインページのルート
 @app.route('/', methods=['GET', 'POST'])
-@login_required
+# @login_required
 def index():
     items = Item.query.all()
     total = 0
@@ -161,7 +161,7 @@ def index():
 
 # 売上履歴のルート
 @app.route('/sales', methods=['GET', 'POST'])
-@login_required
+# @login_required
 def sales():
     items = Item.query.all()
     total_sales = 0
@@ -187,7 +187,7 @@ def sales():
 
 # 売上履歴の削除ルート
 @app.route('/delete/<int:id>', methods=['POST'])
-@login_required
+# @login_required
 def delete(id):
     sale_to_delete = Sale.query.get_or_404(id)
     try:
@@ -199,7 +199,7 @@ def delete(id):
 
 # 商品情報編集のルート
 @app.route('/edit_item/<int:id>', methods=['GET', 'POST'])
-@login_required
+# @login_required
 def edit_item(id):
     item_to_edit = Item.query.get_or_404(id)
 
@@ -213,14 +213,14 @@ def edit_item(id):
 
 # 商品一覧のルート
 @app.route('/items', methods=['GET'])
-@login_required
+# @login_required
 def items():
     all_items = Item.query.all()
     return render_template('items.html', items=all_items)
 
 # 商品追加のルート
 @app.route('/add_item', methods=['GET', 'POST'])
-@login_required
+# @login_required
 def add_item():
     if request.method == 'POST':
         item_name = request.form['name']
@@ -236,7 +236,7 @@ def add_item():
 
 # 商品削除のルート
 @app.route('/delete_item/<int:id>', methods=['POST'])
-@login_required
+# @login_required
 def delete_item(id):
     item_to_delete = Item.query.get_or_404(id)
     try:
