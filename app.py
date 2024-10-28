@@ -181,7 +181,8 @@ def sales():
 
         db.session.commit()
 
-    sales_records = Sale.query.all()
+    # 作成日時で昇順にソートして売上データを取得
+    sales_records = Sale.query.order_by(Sale.created_at.desc()).all()
     total_sales = sum(record.total for record in sales_records)
     return render_template('sales.html', items=items, total_sales=total_sales, sales_records=sales_records)
 
