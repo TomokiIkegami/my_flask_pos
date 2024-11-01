@@ -80,7 +80,7 @@ def init_items():
     item_data = [
         {"name": "白玉団子（黒蜜きなこ）", "price": 200},
         {"name": "白玉団子（みたらし）", "price": 200},
-        {"name": "白玉団子（あんこ）", "price": 200},
+        {"name": "白玉団子（五郎島金時＆あんこ）", "price": 200},
     ]
     for item in item_data:
         if not Item.query.filter_by(name=item["name"]).first():
