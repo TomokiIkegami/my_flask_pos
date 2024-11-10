@@ -92,7 +92,7 @@ def init_items():
 @app.before_request
 def setup_database():
     db.create_all()
-    init_items()
+    # init_items()
     init_admin_user()
 
 # ログインフォーム
@@ -143,8 +143,13 @@ def index():
     items = Item.query.all()
     total = 0
     sales_records = []
+    message = None  # 初期化
 
-    if request.method == 'POST':
+    # 商品が登録されていない場合のメッセージを設定
+    if not items:
+        message = "「商品一覧」ページから商品を登録してください"
+
+    if request.method == 'POST' and items:
         quantities = request.form.getlist('quantities[]')
         for item in items:
             quantity = request.form.get(f'quantities[{item.id}]', 0)
@@ -154,10 +159,9 @@ def index():
                 new_sale = Sale(item_name=item.name, price=item.price, quantity=quantity, total=item.price * quantity)
                 db.session.add(new_sale)
                 sales_records.append({'item_name': item.name, 'price': item.price, 'quantity': quantity, 'total': item.price * quantity})
+        db.session.commit()
 
-    db.session.commit()
-
-    return render_template('index.html', items=items, total=total, sales_records=sales_records)
+    return render_template('index.html', items=items, total=total, sales_records=sales_records, message=message)
 
 # 売上履歴のルート
 @app.route('/sales', methods=['GET', 'POST'])
