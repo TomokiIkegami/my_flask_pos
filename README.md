@@ -1,5 +1,5 @@
 # my_flask_pos
-大学祭の模擬店に使える簡単なレジシステムです。詳細については[ブログ](https://tomokiikegami.github.io/Happy_RC.github.io/2024/11/26/)を下さい。
+大学祭の模擬店に使える簡単なレジシステムです。詳細については[ブログ](https://tomokiikegami.github.io/Happy_RC.github.io/2024/11/26/)をご覧ください。
 
 ## 使用技術一覧
 <!-- シールド一覧 -->
