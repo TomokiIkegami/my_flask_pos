@@ -10,23 +10,32 @@
     {% endif %} -->
 
     {% if items %}
-        <form method="POST" action="{{ url_for('index') }}" class="mb-3" style="margin-bottom: 20px;"> <!-- 下にマージンを追加 -->
-            <div class="form-row">
-                {% for item in items %}
-                    <div class="form-group col-md-3 mb-2"> <!-- 列の幅を指定し、行間にマージンを追加 -->
-                        <label for="item_{{ item.id }}">{{ item.name }} (¥{{ item.price }})</label>
-                        <div class="input-group">
-                            <input type="number" name="quantities[{{ item.id }}]" min="0" value="0" class="form-control text-center" id="item_{{ item.id }}" onchange="validateQuantity({{ item.id }})" style="max-width: 80px;"> <!-- 幅を指定 -->
-                            <div class="input-group-append" style="margin-left: 5px;"> <!-- 左にマージンを追加 -->
-                                <button type="button" class="btn btn-secondary" onclick="changeQuantity({{ item.id }}, -1)">ー</button>
-                                <button type="button" class="btn btn-secondary" onclick="changeQuantity({{ item.id }}, 1)">+</button>
-                            </div>
+    <form method="POST" action="{{ url_for('index') }}" class="mb-3" style="margin-bottom: 20px;"> <!-- 下にマージンを追加 -->
+
+        <!-- 🔽 シフト番号入力欄の追加 -->
+        <div class="form-group col-md-3 mb-3">
+            <label for="shift_number">シフト番号</label>
+            <input type="number" name="shift_number" min="1" value="1" class="form-control text-center" id="shift_number" style="max-width: 100px;">
+        </div>
+
+        <div class="form-row">
+            {% for item in items %}
+                <div class="form-group col-md-3 mb-2">
+                    <label for="item_{{ item.id }}">{{ item.name }} (¥{{ item.price }})</label>
+                    <div class="input-group">
+                        <input type="number" name="quantities[{{ item.id }}]" min="0" value="0"
+                            class="form-control text-center" id="item_{{ item.id }}" onchange="validateQuantity({{ item.id }})" style="max-width: 80px;">
+                        <div class="input-group-append" style="margin-left: 5px;">
+                            <button type="button" class="btn btn-secondary" onclick="changeQuantity({{ item.id }}, -1)">ー</button>
+                            <button type="button" class="btn btn-secondary" onclick="changeQuantity({{ item.id }}, 1)">+</button>
                         </div>
                     </div>
-                {% endfor %}
-            </div>
-            <button type="submit" class="btn btn-primary" style="margin-top: 20px;">合計金額を計算</button>
-        </form>
+                </div>
+            {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-primary" style="margin-top: 20px;">合計金額を計算</button>
+    </form>
+
     {% else %}
         <div class="alert alert-info">
             「商品一覧」ページから商品を登録してください >> 

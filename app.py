@@ -70,6 +70,7 @@ class Sale(db.Model):
     price = db.Column(db.Integer, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     total = db.Column(db.Integer, nullable=False)
+    shift_number = db.Column(db.Integer, nullable=True)  # シフト番号を追加
     created_at = db.Column(db.DateTime, default=lambda: datetime.utcnow() + timedelta(hours=9))  # JST に変更
 
     def __repr__(self):
@@ -78,9 +79,9 @@ class Sale(db.Model):
 # 商品データをデータベースに初期化する関数
 def init_items():
     item_data = [
-        {"name": "白玉団子（黒蜜きなこ）", "price": 200},
-        {"name": "白玉団子（みたらし）", "price": 200},
-        {"name": "白玉団子（五郎島金時＆あんこ）", "price": 200},
+        {"name": "前売券", "price": 1000},
+        {"name": "茶席券（緑色）", "price": 1000},
+        {"name": "当日券", "price": 1500},
     ]
     for item in item_data:
         if not Item.query.filter_by(name=item["name"]).first():
@@ -150,15 +151,17 @@ def index():
         message = "「商品一覧」ページから商品を登録してください"
 
     if request.method == 'POST' and items:
+        shift_number = request.form.get('shift_number', None)
+        shift_number = int(shift_number) if shift_number else None
         quantities = request.form.getlist('quantities[]')
         for item in items:
             quantity = request.form.get(f'quantities[{item.id}]', 0)
             quantity = int(quantity)
             if quantity > 0:
                 total += item.price * quantity
-                new_sale = Sale(item_name=item.name, price=item.price, quantity=quantity, total=item.price * quantity)
+                new_sale = Sale(item_name=item.name, price=item.price, quantity=quantity, total=item.price * quantity, shift_number=shift_number)
                 db.session.add(new_sale)
-                sales_records.append({'item_name': item.name, 'price': item.price, 'quantity': quantity, 'total': item.price * quantity})
+                sales_records.append({'item_name': item.name, 'price': item.price, 'quantity': quantity, 'total': item.price * quantity, 'shift_number': shift_number})
         db.session.commit()
 
     return render_template('index.html', items=items, total=total, sales_records=sales_records, message=message)
@@ -254,6 +257,11 @@ def delete_item(id):
 # 売上ダッシュボードの√
 @app.route('/dashboard')
 def dashboard():
+    from collections import defaultdict
+
+    shift_summary = defaultdict(lambda: {'quantity': 0, 'total': 0})
+    shift_product_summary = defaultdict(lambda: defaultdict(int))  # ← 追加
+
     # 合計売上個数、売上額、直近1時間の売上額
     total_quantity = db.session.query(db.func.sum(Sale.quantity)).scalar() or 0
     total_sales = db.session.query(db.func.sum(Sale.total)).scalar() or 0
@@ -262,13 +270,22 @@ def dashboard():
     one_hour_ago = datetime.utcnow() + timedelta(hours=9) - timedelta(hours=1)
     sales_last_hour = db.session.query(db.func.sum(Sale.total)).filter(Sale.created_at >= one_hour_ago).scalar() or 0
 
-    # 時間ごとの売上個数の取得
+    # 売上データの取得
     sales = Sale.query.all()
+
     hourly_sales = {}
     product_sales = {}
 
     for sale in sales:
-        # JST に変換して時間ごとの売上
+        # シフトごとの合計
+        if sale.shift_number is not None:
+            shift_summary[sale.shift_number]['quantity'] += sale.quantity
+            shift_summary[sale.shift_number]['total'] += sale.total
+
+            # ★ シフト × 商品 の売上数を加算
+            shift_product_summary[sale.shift_number][sale.item_name] += sale.quantity
+
+        # JSTに変換して時間ごとの売上集計
         hour = (sale.created_at).strftime('%m/%d %H:00')
         if hour not in hourly_sales:
             hourly_sales[hour] = 0
@@ -304,8 +321,12 @@ def dashboard():
         quantities=quantities,
         cumulative_quantities=cumulative_quantities,
         product_names=product_names,
-        product_quantities=product_quantities
+        product_quantities=product_quantities,
+        shift_summary=shift_summary,
+        product_sales=product_sales,
+        shift_product_summary=shift_product_summary,  # ← 新しく追加
     )
+
 
 # 売上データのCSVダウンロード用のルート
 @app.route('/download_csv')

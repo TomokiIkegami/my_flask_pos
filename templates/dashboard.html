@@ -50,6 +50,29 @@
         </div>
     </div>
 
+    <h3 class="mt-4">シフト別・商品別集計</h3>
+    {% for shift, products in shift_product_summary.items() %}
+        <h4>{{ shift }}</h4>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>商品名</th>
+                    <th>売上数</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for product, quantity in products.items() %}
+                <tr>
+                    <td>{{ product }}</td>
+                    <td>{{ quantity }} 個</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endfor %}
+
+
+
 <!-- Chart.js を読み込み -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>

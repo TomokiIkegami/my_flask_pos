@@ -12,6 +12,7 @@
             <table class="table table-bordered table-striped mt-4">
                 <thead class="thead-light">
                     <tr>
+                        <th>シフト番号</th> <!-- 追加 -->
                         <th>商品名</th>
                         <th>単価</th>
                         <th>数量</th>
@@ -23,6 +24,7 @@
                 <tbody>
                     {% for record in sales_records %}
                     <tr>
+                        <td>{{ record.shift_number }}</td> <!-- 追加 -->
                         <td>{{ record.item_name }}</td>
                         <td>¥{{ record.price }}</td>
                         <td>{{ record.quantity }}</td>
